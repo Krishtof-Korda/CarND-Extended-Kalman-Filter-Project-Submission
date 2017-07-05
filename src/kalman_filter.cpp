@@ -30,6 +30,17 @@ void KalmanFilter::Predict() {
   P_ = F_ * P_ * Ft + Q_;
 }
 
+void KalmanFilter::Estimator(const VectorXd& y){
+  //Performs the common matrix algebra for both the EKF and KF
+  MatrixXd PHt = P_ * H_.transpose();
+  MatrixXd S = H_ * PHt + R_;
+  MatrixXd K = PHt * S.inverse();
+    
+  //new estimate
+  x_ = x_ + (K * y);
+  P_ -= K * H_ * P_;
+}
+
 void KalmanFilter::Update(const VectorXd &z) {
   /**
   TODO:
@@ -38,17 +49,7 @@ void KalmanFilter::Update(const VectorXd &z) {
   
   VectorXd z_pred = H_ * x_;
   VectorXd y = z - z_pred;
-  MatrixXd Ht = H_.transpose();
-  MatrixXd S = H_ * P_ * Ht + R_;
-  MatrixXd Si = S.inverse();
-  MatrixXd PHt = P_ * Ht;
-  MatrixXd K = PHt * Si;
-  
-  //new estimate
-  x_ = x_ + (K * y);
-  long x_size = x_.size();
-  MatrixXd I = MatrixXd::Identity(x_size, x_size);
-  P_ = (I - K * H_) * P_;
+  Estimator(y);
 }
 
 void KalmanFilter::UpdateEKF(const VectorXd &z) {
@@ -80,8 +81,16 @@ void KalmanFilter::UpdateEKF(const VectorXd &z) {
  
   VectorXd y = z - h_x;
   std::cout << "\n\n Phi = " << y(1) << std::endl;
+
+  //Adjust phi value to be between -pi and pi.
+  void NormalizeAngle(double& phi){
+    phi = atan2(sin(phi), cos(phi));
+  }
   
-  //Adjust phi value to be between -pi and pi, if it is not already
+  NormalizeAngle(y(1));
+  Estimator(y);
+  
+  /* My orginal code for normalizing angle phi. I used the recommended code from the Udacity reviewer instead.
   if (y(1) > M_PI){
     while(y(1) > M_PI){
       y(1) = y(1) - 2*M_PI;
@@ -95,7 +104,9 @@ void KalmanFilter::UpdateEKF(const VectorXd &z) {
     }
     std::cout << "\n\n Phi after increase = " << y(1) << std::endl;
   }
-  
+  */
+
+  /*
   //Update precalculations
   MatrixXd Ht = H_.transpose();
   MatrixXd S = H_ * P_ * Ht + R_;
@@ -105,8 +116,10 @@ void KalmanFilter::UpdateEKF(const VectorXd &z) {
   
   //new estimate
   x_ = x_ + (K * y);
-  long x_size = x_.size();
-  MatrixXd I = MatrixXd::Identity(x_size, x_size);
-  P_ = (I - K * H_) * P_;
+  P_ -= K * H_ * P_;
+  //long x_size = x_.size();
+  //MatrixXd I = MatrixXd::Identity(x_size, x_size);
+  //P_ = (I - K * H_) * P_;
+  */
   
 }

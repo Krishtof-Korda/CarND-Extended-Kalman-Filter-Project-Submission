@@ -97,10 +97,10 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
       
       cout << "Kalman Filter Initialization using RADAR " << endl;
 
-      const float px = measurement_pack.raw_measurements_[0] * cos(measurement_pack.raw_measurements_[1]);
-      const float py = measurement_pack.raw_measurements_[0] * sin(measurement_pack.raw_measurements_[1]);
-      const float vx = measurement_pack.raw_measurements_[2] * cos(measurement_pack.raw_measurements_[1]);
-      const float vy = measurement_pack.raw_measurements_[2] * sin(measurement_pack.raw_measurements_[1]);
+      const double px = measurement_pack.raw_measurements_[0] * cos(measurement_pack.raw_measurements_[1]);
+      const double py = measurement_pack.raw_measurements_[0] * sin(measurement_pack.raw_measurements_[1]);
+      const double vx = measurement_pack.raw_measurements_[2] * cos(measurement_pack.raw_measurements_[1]);
+      const double vy = measurement_pack.raw_measurements_[2] * sin(measurement_pack.raw_measurements_[1]);
       
       ekf_.x_ << px, py, vx, vy;
       previous_timestamp_ = measurement_pack.timestamp_;
@@ -140,14 +140,14 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
    */
   
   //compute the time elapsed between the current and previous measurements
-  const float dt = (measurement_pack.timestamp_ - previous_timestamp_) / 1000000.0;	//dt - expressed in seconds
+  const double dt = (measurement_pack.timestamp_ - previous_timestamp_) / 1000000.0;	//dt - expressed in seconds
   previous_timestamp_ = measurement_pack.timestamp_;
   
-  const float dt_2 = dt * dt;
-  const float dt_3 = dt_2 * dt;
-  const float dt_4 = dt_3 * dt;
-  const float c_3x = dt_3/2*noise_ax;
-  const float c_3y = dt_3/2*noise_ay;
+  const double dt_2 = dt * dt;
+  const double dt_3 = dt_2 * dt;
+  const double dt_4 = dt_3 * dt;
+  const double c_3x = dt_3/2*noise_ax;
+  const double c_3y = dt_3/2*noise_ay;
   
   //Modify the F matrix so that the time is integrated
   ekf_.F_(0, 2) = dt;

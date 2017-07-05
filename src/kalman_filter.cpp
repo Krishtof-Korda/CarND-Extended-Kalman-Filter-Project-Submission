@@ -59,16 +59,16 @@ void KalmanFilter::UpdateEKF(const VectorXd &z) {
   */
   
   //recover state parameters
-  float px = x_(0);
-  float py = x_(1);
-  float vx = x_(2);
-  float vy = x_(3);
+  double px = x_(0);
+  double py = x_(1);
+  double vx = x_(2);
+  double vy = x_(3);
   
   //Precalculate reused quantities for error calculation
-  float px_2 = px*px;
-  float py_2 = py*py;
-  float sumsq = px_2+py_2;
-  float range = sqrt(sumsq);
+  double px_2 = px*px;
+  double py_2 = py*py;
+  double sumsq = px_2+py_2;
+  double range = sqrt(sumsq);
   
   //check division by zero
   if(fabs(sumsq) < 0.0001){

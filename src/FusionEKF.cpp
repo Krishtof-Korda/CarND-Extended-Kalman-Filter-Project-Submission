@@ -26,7 +26,7 @@ FusionEKF::FusionEKF() {
   x_ = VectorXd(4);
   F_ = MatrixXd(4,4);
  
-/*  //measurement covariance matrix - laser
+ //measurement covariance matrix - laser
   R_laser_ << 0.0225, 0,
             0, 0.0225;
 
@@ -34,15 +34,7 @@ FusionEKF::FusionEKF() {
   R_radar_ << 0.09, 0, 0,
             0, 0.0009, 0,
             0, 0, 0.09;
-*/
-  //measurement covariance matrix - laser
-  R_laser_ << 0.00225, 0,
-            0, 0.00225;
-  
-  //measurement covariance matrix - radar
-  R_radar_ << 0.09, 0, 0,
-            0, 0.0009, 0,
-            0, 0, 0.09;
+
   
   /**
    TODO:
@@ -66,9 +58,8 @@ FusionEKF::FusionEKF() {
   ekf_.Init(x_, P_, F_, H_laser_, R_laser_, Q_);
   
   //set the acceleration noise components
-  noise_ax = 5;
-  noise_ay = 5;
-
+  noise_ax = 9;
+  noise_ay = 9;
 }
 
 /**
@@ -106,10 +97,12 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
       
       cout << "Kalman Filter Initialization using RADAR " << endl;
 
-      float px = measurement_pack.raw_measurements_[0] * cos(measurement_pack.raw_measurements_[1]);
-      float py = measurement_pack.raw_measurements_[0] * sin(measurement_pack.raw_measurements_[1]);
+      const float px = measurement_pack.raw_measurements_[0] * cos(measurement_pack.raw_measurements_[1]);
+      const float py = measurement_pack.raw_measurements_[0] * sin(measurement_pack.raw_measurements_[1]);
+      const float vx = measurement_pack.raw_measurements_[2] * cos(measurement_pack.raw_measurements_[1]);
+      const float vy = measurement_pack.raw_measurements_[2] * sin(measurement_pack.raw_measurements_[1]);
       
-      ekf_.x_ << px, py, 10, 0;
+      ekf_.x_ << px, py, vx, vy;
       previous_timestamp_ = measurement_pack.timestamp_;
       is_initialized_ = true;
       return;
@@ -123,7 +116,7 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
       cout << "Kalman Filter Initialization using LASER " << endl;
       
       //set the state with the initial location and zero velocity
-      ekf_.x_ << measurement_pack.raw_measurements_[0], measurement_pack.raw_measurements_[1], 10, 0;
+      ekf_.x_ << measurement_pack.raw_measurements_[0], measurement_pack.raw_measurements_[1], 0, 0;
       
       previous_timestamp_ = measurement_pack.timestamp_;
       is_initialized_ = true;
@@ -147,14 +140,14 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
    */
   
   //compute the time elapsed between the current and previous measurements
-  float dt = (measurement_pack.timestamp_ - previous_timestamp_) / 1000000.0;	//dt - expressed in seconds
+  const float dt = (measurement_pack.timestamp_ - previous_timestamp_) / 1000000.0;	//dt - expressed in seconds
   previous_timestamp_ = measurement_pack.timestamp_;
   
-  float dt_2 = dt * dt;
-  float dt_3 = dt_2 * dt;
-  float dt_4 = dt_3 * dt;
-  float c_3x = dt_3/2*noise_ax;
-  float c_3y = dt_3/2*noise_ay;
+  const float dt_2 = dt * dt;
+  const float dt_3 = dt_2 * dt;
+  const float dt_4 = dt_3 * dt;
+  const float c_3x = dt_3/2*noise_ax;
+  const float c_3y = dt_3/2*noise_ay;
   
   //Modify the F matrix so that the time is integrated
   ekf_.F_(0, 2) = dt;

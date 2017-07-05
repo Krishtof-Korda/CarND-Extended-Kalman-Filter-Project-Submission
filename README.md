@@ -1,7 +1,7 @@
 ## Korda's Extended Kalman Filter Project for Udacity Self-Driving Car Nanodegree
 
 [YouTube Video](https://youtu.be/j6WeUe2YN6k)
-[![alt text](./images/BestRMSE.jpeg)](https://youtu.be/j6WeUe2YN6k)
+[![alt text](https://img.youtube.com/vi/j6WeUe2YN6k/0.jpg)](https://youtu.be/j6WeUe2YN6k)
 
 
 

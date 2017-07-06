@@ -74,12 +74,7 @@ MatrixXd Tools::CalculateJacobian(const VectorXd& x_state) {
   //check division by zero
   const double eps = 0.001;
   sumsq = std::max(eps, sumsq);
-  /*
-  if(fabs(sumsq) < 0.0001){
-    cout << "CalculateJacobian () - Error - Divide by zero, returning initialized Hj matrix without calculation.\n\n";
-    return Hj;
-  }
-  */
+ 
   //compute the Jacobian matrix
   Hj << (px/range),                 (py/range),                 0,        0,
         -(py/sumsq),                (px/sumsq),                 0,        0,

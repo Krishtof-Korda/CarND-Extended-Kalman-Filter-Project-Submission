@@ -67,7 +67,7 @@ MatrixXd Tools::CalculateJacobian(const VectorXd& x_state) {
   //Precalculate parameters
   const double px_2 = px*px;
   const double py_2 = py*py;
-  const double sumsq = px_2+py_2;
+  double sumsq = px_2+py_2;
   const double range = sqrt(sumsq);
   const double range_3 = range*sumsq;
   

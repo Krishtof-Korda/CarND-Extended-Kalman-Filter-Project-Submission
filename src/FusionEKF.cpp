@@ -43,7 +43,7 @@ FusionEKF::FusionEKF() {
    */
   
   //initialize state matrix with zeros
-  //x_ << 0, 0, 0, 0;
+  x_ << 0, 0, 0, 0;
   
   //measurment matrix for laser
   H_laser_ << 1, 0, 0, 0,
@@ -83,11 +83,12 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
     
     cout << "EKF: " << endl;
     
-    // Initialize measurement covariance
+    // Initialize measurement covariance and assign to ekf_
     P_ << 1, 0, 0, 0,
           0, 1, 0, 0,
           0, 0, 1000, 0,
           0, 0, 0, 1000;
+    
     ekf_.P_ = P_;
 
     if (measurement_pack.sensor_type_ == MeasurementPackage::RADAR) {
@@ -105,6 +106,7 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
       ekf_.x_ << px, py, vx, vy;
       previous_timestamp_ = measurement_pack.timestamp_;
       is_initialized_ = true;
+      
       return;
     }
     
@@ -120,11 +122,13 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
       
       previous_timestamp_ = measurement_pack.timestamp_;
       is_initialized_ = true;
+      
       return;
     }
 
     // done initializing, no need to predict or update
     is_initialized_ = true;
+    
     return;
   }
 
@@ -159,6 +163,7 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
   c_3x, 0, dt_2*noise_ax, 0,
   0, c_3y, 0, dt_2*noise_ay;
 
+  //Predict the next position and velocity state
   ekf_.Predict();
 
   /*****************************************************************************
@@ -170,8 +175,13 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
      DONE: * Use the sensor type to perform the update step.
      DONE: * Update the state and covariance matrices.
    */
-//*
-  if (measurement_pack.sensor_type_ == MeasurementPackage::RADAR) {
+
+  // Booleans for whether to use laser or radar or both in updates
+  const bool laser = 1;
+  const bool radar = 1;
+  
+  //Check if measurement is radar and radar is used for updates
+  if (measurement_pack.sensor_type_ == MeasurementPackage::RADAR && radar==1) {
     // Radar updates
     // Create Jacobian matrix for RADAR update
     Hj_ = tools.CalculateJacobian(ekf_.x_);
@@ -180,15 +190,16 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
     ekf_.UpdateEKF(measurement_pack.raw_measurements_);
   
   }
-//*/
-  if (measurement_pack.sensor_type_ == MeasurementPackage::LASER){
+
+  //Check if measurement is laser and laser is used for updates
+  if (measurement_pack.sensor_type_ == MeasurementPackage::LASER && laser==1) {
     // Laser updates
     ekf_.H_ = H_laser_;
     ekf_.R_ = R_laser_;
     ekf_.Update(measurement_pack.raw_measurements_);
     
   }
-  
+
   // print the output
   cout << "x_ = " << ekf_.x_ << endl;
   cout << "P_ = " << ekf_.P_ << endl;

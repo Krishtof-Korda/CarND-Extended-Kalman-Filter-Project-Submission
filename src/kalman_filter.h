@@ -56,6 +56,14 @@ public:
    * Updates the state by using standard Kalman Filter equations
    * @param z The measurement at k+1
    */
+  
+  void NormalizeAngle(double& phi);
+    //Performs nomalization of phi between -pi and pi using atan2
+  
+  void Estimator(const Eigen::VectorXd& y);
+    //Performs the common matrix algebra for both the EKF and KF
+    
+
   void Update(const Eigen::VectorXd &z);
 
   /**

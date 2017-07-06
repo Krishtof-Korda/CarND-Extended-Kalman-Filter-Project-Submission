@@ -30,6 +30,23 @@ void KalmanFilter::Predict() {
   P_ = F_ * P_ * Ft + Q_;
 }
 
+void KalmanFilter::NormalizeAngle(double& phi){
+  //Normalize phi between -pi and pi
+  phi = atan2(sin(phi), cos(phi));
+}
+
+void KalmanFilter::Estimator(const VectorXd& y){
+  
+  //Performs the common matrix algebra for both the EKF and KF
+  MatrixXd PHt = P_ * H_.transpose();
+  MatrixXd S = H_ * PHt + R_;
+  MatrixXd K = PHt * S.inverse();
+    
+  //new estimate
+  x_ = x_ + (K * y);
+  P_ -= K * H_ * P_;
+}
+
 void KalmanFilter::Update(const VectorXd &z) {
   /**
   TODO:
@@ -38,17 +55,9 @@ void KalmanFilter::Update(const VectorXd &z) {
   
   VectorXd z_pred = H_ * x_;
   VectorXd y = z - z_pred;
-  MatrixXd Ht = H_.transpose();
-  MatrixXd S = H_ * P_ * Ht + R_;
-  MatrixXd Si = S.inverse();
-  MatrixXd PHt = P_ * Ht;
-  MatrixXd K = PHt * Si;
   
-  //new estimate
-  x_ = x_ + (K * y);
-  long x_size = x_.size();
-  MatrixXd I = MatrixXd::Identity(x_size, x_size);
-  P_ = (I - K * H_) * P_;
+  //Call Estimator function to complete the update
+  Estimator(y);
 }
 
 void KalmanFilter::UpdateEKF(const VectorXd &z) {
@@ -58,16 +67,16 @@ void KalmanFilter::UpdateEKF(const VectorXd &z) {
   */
   
   //recover state parameters
-  float px = x_(0);
-  float py = x_(1);
-  float vx = x_(2);
-  float vy = x_(3);
+  const double px = x_(0);
+  const double py = x_(1);
+  const double vx = x_(2);
+  const double vy = x_(3);
   
   //Precalculate reused quantities for error calculation
-  float px_2 = px*px;
-  float py_2 = py*py;
-  float sumsq = px_2+py_2;
-  float range = sqrt(sumsq);
+  const double px_2 = px*px;
+  const double py_2 = py*py;
+  const double sumsq = px_2+py_2;
+  const double range = sqrt(sumsq);
   
   //check division by zero
   if(fabs(sumsq) < 0.0001){
@@ -80,33 +89,11 @@ void KalmanFilter::UpdateEKF(const VectorXd &z) {
  
   VectorXd y = z - h_x;
   std::cout << "\n\n Phi = " << y(1) << std::endl;
-  
-  //Adjust phi value to be between -pi and pi, if it is not already
-  if (y(1) > M_PI){
-    while(y(1) > M_PI){
-      y(1) = y(1) - 2*M_PI;
-    }
-    std::cout << "\n\n Phi after reduction = " << y(1) << std::endl;
-  }
 
-  if (y(1) < -M_PI){
-    while(y(1) < -M_PI){
-      y(1) = y(1) + 2*M_PI;
-    }
-    std::cout << "\n\n Phi after increase = " << y(1) << std::endl;
-  }
+  //Adjust phi value to be between -pi and pi.
+  NormalizeAngle(y(1));
   
-  //Update precalculations
-  MatrixXd Ht = H_.transpose();
-  MatrixXd S = H_ * P_ * Ht + R_;
-  MatrixXd Si = S.inverse();
-  MatrixXd PHt = P_ * Ht;
-  MatrixXd K = PHt * Si;
-  
-  //new estimate
-  x_ = x_ + (K * y);
-  long x_size = x_.size();
-  MatrixXd I = MatrixXd::Identity(x_size, x_size);
-  P_ = (I - K * H_) * P_;
+  //Call Estimator function to complete the update
+  Estimator(y);
   
 }
